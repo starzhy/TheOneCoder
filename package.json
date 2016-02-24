@@ -1,0 +1,14 @@
+{
+  "name": "TheOneCoder",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start"
+  },
+  "dependencies": {
+    "react-native": "^0.20.0",
+    "react-native-storage": "0.0.12",
+    "react-native-vector-icons": "^1.2.0",
+    "react-native-wx": "^1.0.7"
+  }
+}
