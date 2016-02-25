@@ -1,6 +1,19 @@
 {
   "name": "TheOneCoder",
-  "version": "0.0.1",
+  "author": "ZHY",
+  "version": "1.0.0",
+  "description": "码农资讯阅读器:知乎日报、微信热门文章的",
+  "keywords": [
+    "TheOneCoder",
+    "react-native",
+    "react-native-wechat",
+    "react-native-weixin",
+    "react-native-icons",
+    "知乎日报api",
+    "微信文章api"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/starzhy/starzhy.github.io#readme",
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start"
