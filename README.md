@@ -9,6 +9,4 @@
   ·问题交流QQ:108888897
 
 APP截图<br/>
-<img src="http://7u2n6h.com2.z0.glb.qiniucdn.com/app.png" width="320"/>
-<img src="http://7u2n6h.com2.z0.glb.qiniucdn.com/app1.png" width="320"/>
-<img src="http://7u2n6h.com2.z0.glb.qiniucdn.com/app3.png" width="320"/>
+<img src="http://7u2n6h.com2.z0.glb.qiniucdn.com/app.png" width="320"/> <img src="http://7u2n6h.com2.z0.glb.qiniucdn.com/app1.png" width="320"/> <img src="http://7u2n6h.com2.z0.glb.qiniucdn.com/app3.png" width="320"/>
