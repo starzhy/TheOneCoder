@@ -31,13 +31,14 @@ var storage = new Storage({
 });
 global.storage = storage;  
 var share = {
-    show:function(data,articleSource,url,title,img){
+    show:function(data,articleSource,url,title,successCallback){
         var BUTTONS = [
           '微信朋友圈',
           '微信好友',
           '加入收藏',
           '取消',
         ];
+        var cb = successCallback || function(){};
         ActionSheetIOS.showActionSheetWithOptions({
           options: BUTTONS,
           cancelButtonIndex: 3,
@@ -46,6 +47,7 @@ var share = {
         (buttonIndex) => {
             switch(buttonIndex){
               case 0:
+                cb('分享到微信')
                 WechatAPI.shareToTimeline(data);
                 break;
               case 1:
@@ -55,7 +57,7 @@ var share = {
                 var single = { 
                   from: articleSource,
                   url: url,
-                  img:img,
+                  img:data.imgUrl,
                   title:title
                 };
                 storage.load({key:'article'}).then(ret =>{
@@ -69,11 +71,10 @@ var share = {
                     }
                   })
                   if(saved){
-                    AlertIOS.alert(null,'收藏成功');
+                    cb('收藏成功');
                     return false;
                   }
                   data.unshift(single);
-                  console.log(data)
                   saveData(data);
                 })
                 .catch( err => {          
@@ -94,7 +95,7 @@ var share = {
           rawData:data,
           expires:null
         });
-        AlertIOS.alert(null,'收藏成功')
+        cb('收藏成功');
       }
     }
 }

@@ -5,6 +5,8 @@ import React,{
   Dimensions,
   StyleSheet,
   Text,
+  Animated,
+  Modal,
   ActivityIndicatorIOS,
   View
 } from 'react-native'
@@ -39,6 +41,31 @@ class LoadedAll extends Component{
   }
 }
 
+/*Tip*/
+class Tip extends Component{
+  constructor(props){
+    super(props)
+    this.state= {
+      text:this.props.text,
+      fadeAnim:new Animated.Value(0)
+    }
+  }
+  componentDidMount() {
+     Animated.timing(          // Uses easing functions
+       this.state.fadeAnim,    // The value to drive
+       {toValue: 1},           // Configuration
+     ).start();                // Don't forget start!
+  }
+  render(){
+    return (
+      <View  style={[styles.TipModal]}>
+        <Text style={[styles.textCenter,styles.TipText]}>{this.state.text}</Text>
+      </View>
+      
+    )
+  }
+}
+
 var width = Dimensions.get('window').width,
     height = Dimensions.get('window').height;
 var until = {
@@ -55,19 +82,38 @@ var until = {
    * @param {string} url
    * @param {function} callback 请求成功回调
    */
-  get: function(url, successCallback, failCallback){
-    fetch(url)
+  ajax:function(params){
+    var url       = params.url,
+        postData  = params.data,
+        method    = params.method || 'get',
+        headers   = params.headers,
+        success   = params.success || function(){},
+        failure   = params.failure || function(){};
+    var opts = {
+      method:method,
+      headers:{
+        'Accept':'application/json',
+        'Content-Type':'application/json'
+      }
+    };
+    method=='post' ? opts.body=JSON.stringify(postData) : null;
+    opts.headers = Object.assign(opts.headers,headers);
+
+    fetch(url,opts)
       .then((response) => response.text())
       .then((responseText) => {
-        successCallback(JSON.parse(responseText));
+        success(JSON.parse(responseText));
       })
       .catch(function(err){
-        failCallback(err);
+        failure(err);
       });
   },
   Loading:<Loading/>,
   LoadMoreTip:<LoadMoreTip />,
-  LoadedAll:<LoadedAll text="你下面没了..."/>
+  LoadedAll:<LoadedAll text="你下面没了..."/>,
+  Tip:function(text){
+    return <Tip text={text}/>
+  }
 };
 const styles = StyleSheet.create({
   flex:{
@@ -100,6 +146,31 @@ const styles = StyleSheet.create({
   loadedAll:{
     textAlign:'center',
     fontSize:13
+  },
+  textCenter:{
+    textAlign:'center'
+  },
+  TipModal:{
+    flex:1,
+    position:'absolute',
+    top:0,
+    bottom:0,
+    left:0,
+    right:0,
+    height:until.size.height,
+    justifyContent:'center',
+    alignItems:'center',
+    backgroundColor:'rgba(0,0,0,.2)' 
+  },
+  TipText:{
+    paddingTop:20,
+    paddingBottom:20,
+    paddingLeft:20,
+    paddingRight:20,
+    borderRadius:5,
+    color:'gray',
+    marginBottom:130,
+    backgroundColor:'#f8f8f8'
   }
 });
 export default until;

@@ -20,13 +20,15 @@ import share from './common/share.js'
 
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 class Zhihu extends Component{
-  constructor(){
-    super();
+  constructor(props){
+    super(props);
     this.data = {list:[],date:''};
     this.state = {
       show:false,
       dataSource: ds.cloneWithRows(this.data.list),
-      isRefreshing:false
+      isRefreshing:false,
+      tipText:'',
+      tipShow:false,
     }
   }
   componentDidMount(){
@@ -34,20 +36,11 @@ class Zhihu extends Component{
   }
   getData(){
     var news = [];
-    var opts = {
-      method:'GET',
-      headers:{
-        'Accept':'application/json',
-        'Content-Type':'application/json'
-      }
-    };
 
     var url = this.state.date ? 'http://news.at.zhihu.com/api/4/news/before/'+this.state.date : 'http://news-at.zhihu.com/api/4/news/latest';
-    fetch(url,opts)
-    .then((res)=> {
-      return res.json();
-    })
-    .then((data)=>{
+    until.ajax({
+      url:url,
+      success:(data)=>{
         data.stories.map((item)=>{
         item['date'] = data.date;
         })
@@ -59,18 +52,21 @@ class Zhihu extends Component{
           isRefreshing:false,
           dataSource: ds.cloneWithRows(this.data.list)
         });
+      }
     })
   }
-  loadPage(id,type,title,imgUrl) {
-    var that = this;
+  loadPage(id,type,title,imgUrl,flag) {
+    var self = this;
     var url = 'http://daily.zhihu.com/story/'+id;
-    this.props.navigator.push({
+    var data = {
       component:Detail,
       title:'',
       rightButtonTitle:'分享',
       passProps:{
         id:id,
-        type:type
+        type:type,
+        tipText:this.state.tipText,
+        tipShow:this.state.tipShow
       },
       onRightButtonPress:function(){
         //that.props.navigator.pop();
@@ -80,16 +76,30 @@ class Zhihu extends Component{
           description:'来自那个码农的资讯APP',
           imageUrl:imgUrl,
           webpageUrl:url,
-        },'知乎',url,title,imgUrl);
-        
+        },'知乎',url,title,(txt)=>{
+              self.setState({
+                tipText:txt,
+                tipShow:true
+              });
+              self.loadPage(id,type,title,imgUrl,true);
+              setTimeout(()=>{
+                self.setState({
+                  tipText:txt,
+                  tipShow:false
+                });
+                self.loadPage(id,type,title,imgUrl,true);
+              },1000)
+        });
       }
-    })
+    }
+    flag ? this.props.navigator.replace(data):this.props.navigator.push(data)
+
   }
 
   renderRow(result,sid,rid) {
     var pic = result.images[0];
     return (
-      <TouchableHighlight underlayColor="#eee" onPress={this.loadPage.bind(this,result.id,result.type,result.title,pic)}>
+      <TouchableHighlight underlayColor="#eee" onPress={this.loadPage.bind(this,result.id,result.type,result.title,pic,false)}>
           <View style={[styles.ListItem,rid%2 ? styles.bgOdd:'']} ref={result.id}>
             <Image style={styles.listImage} source={{uri:pic}} resizeModle="cover"/>
             <Text numberOfLines={3} style={[styles.listTitle]}>{result.title}</Text>
@@ -142,6 +152,7 @@ class Zhihu extends Component{
   render(){ 
     return (
       <View style={[styles.flex,styles.indexList]}>
+        
         {
           this.state.show ? <ListView 
             dataSource={this.state.dataSource} 
@@ -168,8 +179,8 @@ class Zhihu extends Component{
  
 /*文章详情页*/
 class Detail extends Component{
-  constructor(){
-    super()
+  constructor(props){
+    super(props)
     this.state = {
       url:'',
       body:'',
@@ -180,43 +191,40 @@ class Detail extends Component{
   getData(){
     var id   = this.props.id,
         type = this.props.type;
-    var url  = 'http://news-at.zhihu.com/api/4/news/'+id,
-        opts = {
-          method:'GET',
-          headers:{
-            'Accept':'application/json',
-            'Content-Type':'application/json'
-          }
-        };
+    var url  = 'http://news-at.zhihu.com/api/4/news/'+id;
     if(type==0){
-      fetch(url,opts)
-      .then((res)=> {
-        return res.json();
-      })
-      .then((data)=>{
-        this.setState({
-          url:data.share_url,
-          body:data.body,
-          image:data.image,
-          css:data.css[0]
-        })
-        
+      until.ajax({
+        url:url,
+        success:(data)=>{
+          this.setState({
+            url:data.share_url,
+            body:data.body,
+            image:data.image,
+            css:data.css[0]
+          })
+        }
       })
     }
   }
-
+  componentWillReceiveProps(){
+    
+  }
   componentWillMount(){
     this.getData();
   }
   render(){
+    //console.log(this.refs.nav)
     var headImg = '<img src="'+this.state.image+'" width="100%"/>'
     var htmls = this.state.body.replace('<div class="img-place-holder"></div>',headImg)+'<link href="'+this.state.css+'" rel="stylesheet"/>'
     var config = this.props.type==0 ? {html:htmls}:{uri:this.state.url}
     return (
-      <WebView  ref="webview"  automaticallyAdjustContentInsets={false}
-        style={styles.articleWebview}
-        contentInset={{top:50,bottom:47}}
-        source={config} />
+      <ScrollView style={[styles.webviewWrap]}>
+        <WebView  ref="webview"  automaticallyAdjustContentInsets={false}
+          style={styles.articleWebview}
+          contentInset={{top:0,bottom:47}}
+          source={config} />
+          {this.props.tipShow ? until.Tip(this.props.tipText):null}
+      </ScrollView>
     )
   }
 }
@@ -225,15 +233,16 @@ const styles = StyleSheet.create({
   tabwrapper:{
     marginTop:20
   },
-
+  modal:{
+    flex: 1,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: 0
+  },
   bgOdd:{
     backgroundColor:'#f7f7f7'
-  },
-  indexWrapper:{
-    marginTop:-30
-  },
-  flexRow:{
-    flexDirection:'row'
   },
   center:{
     justifyContent:'center',
@@ -285,8 +294,12 @@ const styles = StyleSheet.create({
     backgroundColor:'red',
     flexDirection:'row'
   },
+  webviewWrap:{
+    flex:1,
+    height:until.size.height
+  },
   articleWebview:{
-    flex:5
+    height:until.size.height
   },
   webviewImage:{
     width:until.size.width,

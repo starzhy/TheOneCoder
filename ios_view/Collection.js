@@ -136,7 +136,7 @@ class Detail extends Component{
     var top = this.props.source=='zhihu' ? 0:50
     return (
       <WebView automaticallyAdjustContentInsets={false}
-        style={styles.articleWebview}
+        style={styles.flex}
         contentInset={{top:top,bottom:47}}
         startInLoadingState={true}
         source={{uri:this.props.url}}/>
@@ -146,16 +146,11 @@ class Detail extends Component{
 
 
 const styles = StyleSheet.create({
-  tabwrapper:{
-    marginTop:-20
-  },
 
   bgOdd:{
     backgroundColor:'#f7f7f7'
   },
-  flexRow:{
-    flexDirection:'row'
-  },
+
   center:{
     justifyContent:'center',
     alignItems:'flex-end'
@@ -206,9 +201,7 @@ const styles = StyleSheet.create({
     backgroundColor:'red',
     flexDirection:'row'
   },
-  articleWebview:{
-    flex:5
-  },
+
   webviewImage:{
     width:until.size.width,
     height:100

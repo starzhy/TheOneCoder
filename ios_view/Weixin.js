@@ -27,7 +27,9 @@ class Weixin extends Component{
       dataSource: ds.cloneWithRows(this.data),
       page:1,
       totalPage:50,
-      isRefreshing:false
+      isRefreshing:false,
+      tipText:'',
+      tipShow:false,
     }
   }
   componentDidMount(){
@@ -35,39 +37,37 @@ class Weixin extends Component{
   }
   getData(){
     var news = [];
-    var opts = {
-      method:'GET',
+    until.ajax({
+      url:'http://apis.baidu.com/txapi/weixin/wxhot?num=20&page='+this.state.page,
       headers:{
-        'Accept':'application/json',
-        'Content-Type':'application/json',
         'apikey':'f589f2834aeab120eef2e750e4fb1dfb'
-      }
-    };
-    fetch('http://apis.baidu.com/txapi/weixin/wxhot?num=20&page='+this.state.page,opts)
-    .then((res)=> {
-      return res.json();
+      },
+      success:(data)=>{
+          if(data.msg=='ok'){
+            this.data = this.data.concat(data.newslist);
+            this.setState({
+              show:true,
+              ajaxing:false,
+              isRefreshing:false,
+              dataSource: ds.cloneWithRows(this.data)
+            })
+          }
+      },
+      failure:(data)=>{}
     })
-    .then((data)=>{
-      if(data.msg=='ok'){
-        this.data = this.data.concat(data.newslist);
-        this.setState({
-          show:true,
-          ajaxing:false,
-          isRefreshing:false,
-          dataSource: ds.cloneWithRows(this.data)
-        })
-        
-      }
-    })
+    
   }
-  loadPage(url,title,imgUrl) {
-    var that = this;
-    this.props.navigator.push({
+  loadPage(url,title,imgUrl,flag) {
+    var self = this;
+
+    var data = {
       component:Detail,
       title:'',
       rightButtonTitle:'分享',
       passProps:{
-        url:url
+        url:url,
+        tipText:this.state.tipText,
+        tipShow:this.state.tipShow
       },
       onRightButtonPress:function(){
         share.show({
@@ -75,17 +75,31 @@ class Weixin extends Component{
           title:title,
           description:'来自那个码农的资讯APP',
           imageUrl:imgUrl,
-          webpageUrl:url
-        },'微信',url,title,imgUrl);
+          webpageUrl:url,
+        },'微信',url,title,(txt)=>{
+              self.setState({
+                tipText:txt,
+                tipShow:true
+              });
+              self.loadPage(url,title,imgUrl,true);
+              setTimeout(()=>{
+                self.setState({
+                  tipText:txt,
+                  tipShow:false
+                });
+                self.loadPage(url,title,imgUrl,true);
+              },1000)
+        });
       }
-    })
+    }
+    flag ? this.props.navigator.replace(data):this.props.navigator.push(data)
   }
 
   renderRow(result) {
     var pic = result.picUrl || 'https://placeholdit.imgix.net/~text?txtsize=40&txt=%E5%9B%BE%E7%89%87%E8%A2%AB%E7%A8%8B%E5%BA%8F%E5%91%98%E5%90%83%E4%BA%86...&w=640&h=350';
     return (
       <View style={[styles.ListItem]}>
-        <TouchableHighlight underlayColor="#eee" onPress={this.loadPage.bind(this,result.url,result.title,pic)}   style={[styles.ListItemTouchLabel]} >
+        <TouchableHighlight underlayColor="#eee" onPress={this.loadPage.bind(this,result.url,result.title,pic,false)}   style={[styles.ListItemTouchLabel]} >
           <Image style={styles.listImage} source={{uri:pic}} resizeModle="cover"/>
         </TouchableHighlight>
         <View>
@@ -164,39 +178,24 @@ class Weixin extends Component{
 class Detail extends Component{
   render(){
     return (
-      <WebView automaticallyAdjustContentInsets={false}
-        style={styles.articleWebview}
-        contentInset={{top:50,bottom:47}}
-        startInLoadingState={true}
-        source={{uri:this.props.url}}/>
+      
+      <ScrollView style={[styles.webviewWrap]}>
+        <WebView automaticallyAdjustContentInsets={false}
+          style={styles.articleWebview}
+          contentInset={{top:0,bottom:47}}
+          startInLoadingState={true}
+          source={{uri:this.props.url}}/>
+        {this.props.tipShow ? until.Tip(this.props.tipText):null}
+      </ScrollView>
     )
   }
 }
 
 
 const styles = StyleSheet.create({
-  tabwrapper:{
-    marginTop:20
-  },
-
-  bgOdd:{
-    backgroundColor:'#f7f7f7'
-  },
-  indexWrapper:{
-    marginTop:-30
-  },
-  flexRow:{
-    flexDirection:'row'
-  },
   center:{
     justifyContent:'center',
     alignItems:'flex-end'
-  },
-  indexWrapper:{
-    marginTop:-30
-  },
-  flexRow:{
-    flexDirection:'row'
   },
   center:{
     justifyContent:'center',
@@ -270,6 +269,13 @@ const styles = StyleSheet.create({
   },
   gray:{
     color:'#a8a8a8'
+  },
+  webviewWrap:{
+    flex:1,
+    height:until.size.height
+  },
+  articleWebview:{
+    height:until.size.height
   },
   ml5:{
     marginLeft:5
