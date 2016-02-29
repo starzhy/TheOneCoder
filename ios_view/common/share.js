@@ -57,7 +57,7 @@ var share = {
                 var single = { 
                   from: articleSource,
                   url: url,
-                  img:data.imageUrl,
+                  img:data.imgUrl,
                   title:title
                 };
                 storage.load({key:'article'}).then(ret =>{
@@ -70,7 +70,6 @@ var share = {
                       return;
                     }
                   })
-                  console.log(single.img)
                   if(saved){
                     cb('收藏成功');
                     return false;

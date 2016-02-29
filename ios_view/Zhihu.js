@@ -230,6 +230,9 @@ class Detail extends Component{
 }
 
 const styles = StyleSheet.create({
+  tabwrapper:{
+    marginTop:20
+  },
   modal:{
     flex: 1,
     position: 'absolute',

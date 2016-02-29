@@ -41,12 +41,12 @@ class Collection extends Component{
   getData(){
     var self = this;
     storage.load({key:'article'}).then(ret =>{
-      self.setState({
-        show:true,
-        ajaxing:false,
-        isRefreshing:false,
-        dataSource: ds.cloneWithRows(ret)
-      })
+        self.setState({
+          show:true,
+          ajaxing:false,
+          isRefreshing:false,
+          dataSource: ds.cloneWithRows(ret)
+        })
     })
     .catch( err => {          
         self.setState({
@@ -156,8 +156,7 @@ const styles = StyleSheet.create({
     alignItems:'flex-end'
   },
   indexList:{
-    marginTop:-50,
-    marginBottom:10
+    marginBottom:50
   },
   
   ListItem:{
