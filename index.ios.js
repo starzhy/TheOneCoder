@@ -15,9 +15,9 @@ import React, {
   AlertIOS,
   View
 } from 'react-native';
-import Zhihu from './ios_view/Zhihu'
-import Weixin from './ios_view/Weixin'
-import Collection from './ios_view/Collection'
+import Zhihu from './App/Zhihu'
+import Weixin from './App/Weixin'
+import Collection from './App/Collection'
 import Icon from 'react-native-vector-icons/Ionicons'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 
@@ -27,7 +27,27 @@ class TheOneCoder extends Component {
   constructor(){
     super();
     this.state = {
-      tab:'zhihu'
+      tab:'zhihu',
+      tabItems:[
+        {
+          name:'日报',
+          title:'知乎日报',
+          type:'zhihu',
+          component:Zhihu,
+        },
+        {
+          name:'微信热门',
+          title:'微信热门',
+          type:'weixin',
+          component:Weixin,
+        },
+        {
+          name:'我的收藏',
+          title:'我的收藏',
+          type:'collection',
+          component:Collection,
+        }
+      ]
     }
   }
   changeSelected(value){  
@@ -35,65 +55,54 @@ class TheOneCoder extends Component {
       tab:value
     })
   }
+  createNavigatorItem(index){
+    return (
+      <NavigatorIOS
+        barTintColor='#f8f8f8'
+        tintColor='#666'
+        titleTextColor="#333"
+        style={{flex:1}} 
+        initialRoute={{
+          component:this.state.tabItems[index].component,
+          title:this.state.tabItems[index].title,
+          wrapperStyle:styles.tabwrapper,
+          passProps:{}
+      }} /> 
+    )
+  }
   render() {
     return (
       <TabBarIOS style={styles.tabBarIOS} barTintColor="#f8f8f8" tintColor="#0D76E3" translucent={true}>
-        <TabBarIOS.Item
-          title="日报"
-          onPress = {this.changeSelected.bind(this,'zhihu')}
+          <TabBarIOS.Item
+          title={this.state.tabItems[0].name}
+          onPress = {this.changeSelected.bind(this,this.state.tabItems[0].type)}
           icon={require("image!home")}
           selected={this.state.tab==='zhihu'}>
-            <NavigatorIOS
-              barTintColor='#f8f8f8'
-              tintColor='#666'
-              titleTextColor="#333"
-              style={{flex:1}} 
-              initialRoute={{
-                component:Zhihu,
-                title:'知乎日报',
-                navigationBarHidden:false,
-                wrapperStyle:styles.tabwrapper,
-                passProps:{}
-            }} /> 
+            {
+              this.createNavigatorItem(0)
+            } 
           </TabBarIOS.Item>
           <FontAwesome.TabBarItem
-            title="微信热门"
-            onPress = {this.changeSelected.bind(this,'weixin')}
-            iconName="weixin"
-            selectedIconName="weixin"
+            title={this.state.tabItems[1].name}
+            onPress = {this.changeSelected.bind(this,this.state.tabItems[1].type)}
+            iconName={this,this.state.tabItems[1].type}
+            selectedIconName={this,this.state.tabItems[1].type}
             iconSize = {26}
             selected={this.state.tab==='weixin'}>
-              <NavigatorIOS
-                barTintColor='#f8f8f8'
-                tintColor='#666'
-                titleTextColor="#333"
-                style={{flex:1}} 
-                initialRoute={{
-                  component:Weixin,
-                  title:'微信热门',
-                  navigationBarHidden:false,
-                  wrapperStyle:styles.tabwrapper,
-                  passProps:{}
-              }} /> 
+              {
+                this.createNavigatorItem(1)
+              } 
           </FontAwesome.TabBarItem>
           <Icon.TabBarItem
-            title="我的收藏"
-            onPress = {this.changeSelected.bind(this,'collection')}
+            title={this.state.tabItems[2].name}
+            onPress = {this.changeSelected.bind(this,this.state.tabItems[2].type)}
             iconName="ios-folder-outline"
             selectedIconName="ios-folder"
             iconSize = {28}
             selected={this.state.tab==='collection'}>
-              <NavigatorIOS
-                barTintColor='#f8f8f8'
-                tintColor='#666'
-                titleTextColor="#333"
-                style={{flex:1}} 
-                initialRoute={{
-                  component:Collection,
-                  title:'我的收藏',
-                  navigationBarHidden:true,
-                  passProps:{}
-              }} /> 
+              {
+                this.createNavigatorItem(2)
+              }
           </Icon.TabBarItem>
         </TabBarIOS>
     );
