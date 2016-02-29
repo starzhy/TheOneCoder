@@ -5,6 +5,10 @@
   "description": "码农资讯阅读器:知乎日报、微信热门文章的",
   "keywords": [
     "TheOneCoder",
+    "listview",
+    "refresh",
+    "react-native-webview",
+    "react-native-wx",
     "react-native",
     "react-native-wechat",
     "react-native-weixin",
