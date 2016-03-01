@@ -105,7 +105,8 @@ class Collection extends Component{
   render(){ 
     return (
       <View style={[styles.flex,styles.indexList]}>
-        <ListView 
+        <ListView
+            automaticallyAdjustContentInsets={false}
             dataSource={this.state.dataSource} 
             renderRow={this.renderRow.bind(this)}
             renderFooter = {this.renderFooter.bind(this)}
@@ -156,7 +157,6 @@ const styles = StyleSheet.create({
     alignItems:'flex-end'
   },
   indexList:{
-    marginTop:-50,
     marginBottom:10
   },
   

@@ -15,6 +15,7 @@ import React, {
 } from 'react-native';
 import until from './common/until'
 import share from './common/share'
+import MTListview from './common/MTListview.js'
 
 /*Weixin精选*/
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
@@ -150,23 +151,17 @@ class Weixin extends Component{
     return (
       <View style={[styles.flex,styles.indexList]}>
         {
-          this.state.show ? <ListView 
+          this.state.show ? <MTListview 
             dataSource={this.state.dataSource} 
             renderRow={this.renderRow.bind(this)}
+            renderHeader = {(txt,currentState)=>{return until.pullHeaderRefresh(txt,currentState)}}
+            headerLoadingHeight = {50}
             renderFooter = {this.renderFooter.bind(this)}
-            onEndReachedThreshold={100}
-            refreshControl={
-              <RefreshControl
-                refreshing={this.state.isRefreshing}
-                onRefresh={this._onRefresh.bind(this)}
-                tintColor="#ccc"
-                title="释放更新..."
-                colors={['#ccc', '#ccc', '#ccc']}
-                progressBackgroundColor="#ccc"/>
-            }
-            onEndReached={this.nextPage.bind(this)}>
-             
-          </ListView> : until.Loading
+            isRefreshing={this.state.isRefreshing}
+            onRefresh={this._onRefresh.bind(this)}
+            onEndReached={this.nextPage.bind(this)}
+            >
+          </MTListview> : until.Loading
         }
       </View>
     )

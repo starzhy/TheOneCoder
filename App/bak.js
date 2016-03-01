@@ -16,8 +16,7 @@ import React, {
 } from 'react-native';
 import until from './common/until.js'
 import share from './common/share.js'
-import MTListview from './common/MTListview.js'
-
+import RefreshableListView from 'react-native-refreshable-listview'
 
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 class Zhihu extends Component{
@@ -46,15 +45,13 @@ class Zhihu extends Component{
         item['date'] = data.date;
         })
         this.data.list = this.data.list.concat(data.stories);
-        setTimeout(()=>{
-          this.setState({
-            show:true,
-            ajaxing:false,
-            date:data.date,
-            isRefreshing:false,
-            dataSource: ds.cloneWithRows(this.data.list)
-          });
-        },0)
+        this.setState({
+          show:true,
+          ajaxing:false,
+          date:data.date,
+          isRefreshing:false,
+          dataSource: ds.cloneWithRows(this.data.list)
+        });
       }
     })
   }
@@ -150,22 +147,28 @@ class Zhihu extends Component{
       return until.LoadMoreTip
     }
   }
-
   render(){ 
     return (
       <View style={[styles.flex,styles.indexList]}>
         {
-          this.state.show ? <MTListview 
+          this.state.show ? <ListView 
             dataSource={this.state.dataSource} 
             renderRow={this.renderRow.bind(this)}
-            renderHeader = {(txt,currentState)=>{return until.pullHeaderRefresh(txt,currentState)}}
-            headerLoadingHeight = {50}
             renderFooter = {this.renderFooter.bind(this)}
-            isRefreshing={this.state.isRefreshing}
-            onRefresh={this._onRefresh.bind(this)}
-            onEndReached={this.nextPage.bind(this)}
-            >
-          </MTListview> : until.Loading
+            initialListSize={10}
+            onScroll={(a,b,c)=>console.log(a)}
+            onEndReachedThreshold={100}
+            refreshControl={
+              <RefreshControl
+                refreshing={this.state.isRefreshing}
+                onRefresh={this._onRefresh.bind(this)}
+                tintColor="#ccc"
+                title="释放更新..."
+                colors={['#ccc', '#ccc', '#ccc']}
+                progressBackgroundColor="#ccc"/>
+            }
+            onEndReached={this.nextPage.bind(this)}>
+          </ListView> : until.Loading
         }
       </View>
     )
@@ -201,7 +204,9 @@ class Detail extends Component{
       })
     }
   }
-
+  componentWillReceiveProps(){
+    
+  }
   componentWillMount(){
     this.getData();
   }
@@ -221,9 +226,6 @@ class Detail extends Component{
     )
   }
 }
-
-
-
 
 const styles = StyleSheet.create({
   modal:{
@@ -314,12 +316,9 @@ const styles = StyleSheet.create({
   ml5:{
     marginLeft:5
   },
-
   transparent:{
     backgroundColor:'transparent'
   }
 });
-
-
 
 export default Zhihu;

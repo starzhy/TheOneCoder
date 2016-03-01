@@ -8,7 +8,8 @@ import React,{
   Animated,
   Modal,
   ActivityIndicatorIOS,
-  View
+  View,
+  Image
 } from 'react-native'
 
 /*Loading*/
@@ -111,6 +112,14 @@ var until = {
   Loading:<Loading/>,
   LoadMoreTip:<LoadMoreTip />,
   LoadedAll:<LoadedAll text="你下面没了..."/>,
+  pullHeaderRefresh:function(txt,currentState){
+      return (
+        <View style={[styles.ListviewHeader]}>
+          <Image source={require("image!home")}/>
+          <Text style={[styles.ListviewLoading]} ref="loadingText">{txt}</Text>
+        </View>
+      )
+  },
   Tip:function(text){
     return <Tip text={text}/>
   }
@@ -171,6 +180,16 @@ const styles = StyleSheet.create({
     color:'gray',
     marginBottom:130,
     backgroundColor:'#f8f8f8'
+  },
+  ListviewHeader:{
+    height:50,
+    justifyContent:'center',
+    alignItems:'center'
+  },
+  ListviewLoading:{
+    fontSize:12,
+    lineHeight:16,
+    color:'#777'
   }
 });
 export default until;

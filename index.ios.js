@@ -66,6 +66,7 @@ class TheOneCoder extends Component {
           component:this.state.tabItems[index].component,
           title:this.state.tabItems[index].title,
           wrapperStyle:styles.tabwrapper,
+          navigationBarHidden:false,
           passProps:{}
       }} /> 
     )
@@ -111,7 +112,7 @@ class TheOneCoder extends Component {
 
 const styles = StyleSheet.create({
   tabwrapper:{
-    marginTop:60
+    marginTop:65
   },
   flex:{
     flex:1
