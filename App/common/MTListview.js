@@ -35,18 +35,17 @@ class MTListview extends Component{
     if(typeof this.preScrollY =='undefined'){
       this.preScrollY=10;
     }
-    var isTouching = true,direction = this.preScrollY>scrollY ? 1 : -1; //1往下拉，-1回弹
+    var direction = this.preScrollY>scrollY ? 1 : -1; //1往下拉，-1回弹
     this.preScrollY = scrollY;
-    console.log(Math.abs(scrollY))
-    if(Math.abs(scrollY)+10<headerLoadingHeight) return;
     if(direction==1){
-      if(this.props.isRefreshing) return;
+      if(!this.props.isRefreshing && (Math.abs(scrollY)+10<headerLoadingHeight) ) return;
       this.setState({
         loadingText:'松开刷新',
-        currentState:0
+        currentState:1
       })
     }else{
-      if(!this.props.isRefreshing && !this.state.currentState){  
+      if(!this.state.currentState) return;
+      if(!this.props.isRefreshing){  
         //刚松手 onRefresh是传进来的加载数据事件，并把props.isRefreshing设置为true
         this.props.onRefresh();
         this.setState({
@@ -62,6 +61,7 @@ class MTListview extends Component{
             loadingText:'加载完成',
             currentState:2
           })
+          this.preScrollY =10;
           clearInterval(this.interval);
           setTimeout(()=>{
             this.setState({
