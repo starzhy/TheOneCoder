@@ -20,7 +20,7 @@ import React, {
 } from 'react-native';
 import until from './common/until'
 import share from './common/share'
-
+import MTListview from './common/MTListview.js'
 /*我的收藏*/
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 class Collection extends Component{
@@ -105,23 +105,16 @@ class Collection extends Component{
   render(){ 
     return (
       <View style={[styles.flex,styles.indexList]}>
-        <ListView
-            automaticallyAdjustContentInsets={false}
+        <MTListview 
             dataSource={this.state.dataSource} 
             renderRow={this.renderRow.bind(this)}
+            renderHeader = {(txt,currentState)=>{return until.pullHeaderRefresh(txt,currentState)}}
+            headerLoadingHeight = {50}
             renderFooter = {this.renderFooter.bind(this)}
-            onEndReachedThreshold={100}
-            refreshControl={
-              <RefreshControl
-                refreshing={this.state.isRefreshing}
-                onRefresh={this._onRefresh.bind(this)}
-                tintColor="#ccc"
-                title="释放更新..."
-                colors={['#ccc', '#ccc', '#ccc']}
-                progressBackgroundColor="#ccc"/>
-            }>
-             
-          </ListView>
+            isRefreshing={this.state.isRefreshing}
+            onRefresh={this._onRefresh.bind(this)}
+            >
+          </MTListview>
         {
           this.state.show ?  null: <Text style={[styles.noData,styles.gray]}>都不收藏，你下面没了...</Text>
         }

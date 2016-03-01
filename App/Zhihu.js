@@ -153,7 +153,7 @@ class Zhihu extends Component{
 
   render(){ 
     return (
-      <View style={[styles.flex,styles.indexList]}>
+      <View style={[styles.flex]}>
         {
           this.state.show ? <MTListview 
             dataSource={this.state.dataSource} 
@@ -241,10 +241,6 @@ const styles = StyleSheet.create({
     justifyContent:'center',
     alignItems:'flex-end'
   },
-  indexList:{
-    marginBottom:20
-  },
-  
   ListItem:{
     flex:1,
     flexDirection:'row',

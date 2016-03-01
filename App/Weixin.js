@@ -1,4 +1,4 @@
-/*indexList 知乎日报*/
+/*微信热门文章*/
 'use strict';
 import React, {
   Component,
@@ -149,7 +149,7 @@ class Weixin extends Component{
 
   render(){ 
     return (
-      <View style={[styles.flex,styles.indexList]}>
+      <View style={[styles.flex]}>
         {
           this.state.show ? <MTListview 
             dataSource={this.state.dataSource} 
@@ -195,9 +195,6 @@ const styles = StyleSheet.create({
   center:{
     justifyContent:'center',
     alignItems:'flex-end'
-  },
-  indexList:{
-    marginBottom:20
   },
   ListItem: {
     paddingBottom:20

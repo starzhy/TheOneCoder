@@ -37,8 +37,10 @@ class MTListview extends Component{
     }
     var isTouching = true,direction = this.preScrollY>scrollY ? 1 : -1; //1往下拉，-1回弹
     this.preScrollY = scrollY;
+    console.log(Math.abs(scrollY))
+    if(Math.abs(scrollY)<30) return;
     if(direction==1){
-      if(this.props.isRefreshing || Math.abs(scrollY)<30) return;
+      if(this.props.isRefreshing) return;
       this.setState({
         loadingText:'松开刷新',
         currentState:0
