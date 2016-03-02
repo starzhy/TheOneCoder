@@ -73,9 +73,9 @@ class MTListview extends Component{
     var direction = this.lastScrollY>scrollY ? 1 : -1; //1往下拉，-1回弹
     this.lastScrollY = scrollY;
     if(direction==1){
-      if(!this.props.isRefreshing && (Math.abs(scrollY)+10<headerLoadingHeight) ) return;
+      if(!this.props.isRefreshing && (Math.abs(scrollY)<headerLoadingHeight) ) return;
       this.setState({
-        translateY:-headerLoadingHeight-scrollY/2,
+        translateY:0,
         loadingText:'松开刷新',
         currentState:1
       })
@@ -104,10 +104,7 @@ class MTListview extends Component{
         onEndReachedThreshold={100}
         onEndReached={this.props.onEndReached}
         ref="listView"
-        style={{transform:[{
-            translateY:this.state.translateY
-          }]
-        }}>
+        style={{marginTop:this.state.translateY}}>
       </ListView>
    )
   }
