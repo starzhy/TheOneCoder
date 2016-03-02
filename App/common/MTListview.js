@@ -80,6 +80,7 @@ class MTListview extends Component{
         currentState:1
       })
     }else{
+      if(!this.state.currentState) return;
       running = true;
       this.props.onRefresh();
       this.setState({

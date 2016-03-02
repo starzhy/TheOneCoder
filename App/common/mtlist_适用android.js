@@ -76,7 +76,7 @@ class MTListview extends Component{
         currentState:1
       })
     }else{
-      //if(!this.state.currentState) return;
+      if(!this.state.currentState) return;
       console.log(this.props.isRefreshing)
       running = true;
       this.props.onRefresh();
