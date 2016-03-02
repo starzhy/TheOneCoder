@@ -36,33 +36,33 @@ class MTListview extends Component{
         })
       },200)
       this.lastScrollY =10;
-      //setTimeout(()=>{animateTrans()},500)
-      setTimeout(()=>{
-        running = false;
-        this.setState({
-          loadingText:'下拉刷新',
-          translateY:-headerLoadingHeight,
-          currentState:0
-        });
-      },400)
+      setTimeout(()=>{animateTrans()},300)
+      // setTimeout(()=>{
+      //   running = false;
+      //   this.setState({
+      //     loadingText:'下拉刷新',
+      //     translateY:-headerLoadingHeight,
+      //     currentState:0
+      //   });
+      // },400)
     }
     //加载完成动画回弹
-    // var self = this;
-    // function animateTrans(){
-    //   aniRate -=20;
-    //   var loadingText = aniRate<-20 ? '下拉刷新':'加载完成'
-    //   self.setState({
-    //     loadingText:loadingText,
-    //     translateY:aniRate,
-    //     currentState:0
-    //   });
-    //   if(aniRate<=-headerLoadingHeight){
-    //     aniRate=0;
-    //     running = false;
-    //   }else{
-    //     window.requestAnimationFrame(animateTrans)
-    //   } 
-    // }
+    var self = this;
+    function animateTrans(){
+      aniRate -=20;
+      var loadingText = aniRate<-20 ? '下拉刷新':'加载完成'
+      self.setState({
+        loadingText:loadingText,
+        translateY:aniRate,
+        currentState:0
+      });
+      if(aniRate<=-headerLoadingHeight){
+        aniRate=0;
+        running = false;
+      }else{
+        window.requestAnimationFrame(animateTrans)
+      } 
+    }
   }
   handleScroll(e) {
     var scrollY = e.nativeEvent.contentInset.top + e.nativeEvent.contentOffset.y;

@@ -26,7 +26,6 @@ class MTListview extends Component{
       y:headerLoadingHeight,
       top:-headerLoadingHeight,
       currentState:0,   //0下拉刷新状态  1加载中状态  2加载完成状态
-      bindScroll:true
     }
   }
   componentWillReceiveProps(){
@@ -36,42 +35,46 @@ class MTListview extends Component{
         loadingText:'加载完成',
         currentState:2,
       })
-      setTimeout(()=>{
+      clearTimeout(this.timeHandle)
+      this.timeHandle = setTimeout(()=>{
+        
+        running = false;
+        this.lastScrollY = 10;
         this.setState({
           loadingText:'下拉刷新',
           currentState:0,
           y:headerLoadingHeight,
           top:-headerLoadingHeight
         });
-        setTimeout(()=>{
-          running = false;
-          this.lastScrollY = 10;
-        },200);
-      },500)
+      },200)
     }
   }
   handleScroll(e) {
     // this.lastContentInsetTop = e.nativeEvent.contentInset.top
     // this.lastContentOffsetX = e.nativeEvent.contentOffset.x
-    if( running || scrollY>0) return;
     var scrollY = e.nativeEvent.contentInset.top + e.nativeEvent.contentOffset.y;
+    if( running || scrollY>0) return;
     var direction = (this.lastScrollY>scrollY || typeof this.lastScrollY=='undefined') ? 1 : -1; //1往下拉，-1回弹
     this.lastScrollY = scrollY;
     if(direction==1){
-      if(scrollY>headerLoadingHeight) return;
+      if(Math.abs(scrollY)<headerLoadingHeight) return;
       this.setState({
         loadingText:'松开刷新',
         currentState:1
       })
     }else{
+      if(!this.state.currentState) return;
       running = true;
-      this.props.onRefresh();//外边改变父级props.isRefreshing
       this.setState({
         loadingText:'加载中',
         currentState:1,
         y:0,
-        top:0,
+        top:0
       });
+      //外边改变父级props.isRefreshing
+      setTimeout(()=>{
+        this.props.onRefresh();
+      },300)
     }
   }
   render(){
@@ -92,7 +95,6 @@ class MTListview extends Component{
           top:this.state.top
         }}
         contentOffset={{
-          x:0,
           y:this.state.y
         }}
         >
@@ -100,14 +102,5 @@ class MTListview extends Component{
    )
   }
 }
-
-const mt = StyleSheet.create({
-  Listview:{
-    transform:[{
-      translateY:-headerLoadingHeight
-    }]
-  },
-  flex:1
-})
 
 export default MTListview;
