@@ -18,7 +18,6 @@ import until from './common/until.js'
 import share from './common/share.js'
 import MTListview from './common/MTListview.js'
 
-
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 class Zhihu extends Component{
   constructor(props){
@@ -36,8 +35,7 @@ class Zhihu extends Component{
     this.getData();
   }
   getData(){
-    var news = [];
-
+    var news = [];  
     var url = this.state.date ? 'http://news.at.zhihu.com/api/4/news/before/'+this.state.date : 'http://news-at.zhihu.com/api/4/news/latest';
     until.ajax({
       url:url,
@@ -46,15 +44,21 @@ class Zhihu extends Component{
         item['date'] = data.date;
         })
         this.data.list = this.data.list.concat(data.stories);
-        setTimeout(()=>{
-          this.setState({
-            show:true,
-            ajaxing:false,
-            date:data.date,
-            isRefreshing:false,
-            dataSource: ds.cloneWithRows(this.data.list)
-          });
-        },0)
+        this.setState({
+          show:true,
+          ajaxing:false,
+          date:data.date,
+          isRefreshing:false,
+          dataSource: ds.cloneWithRows(this.data.list)
+        });
+      },
+      failure:(data)=>{
+        this.setState({
+          show:true,
+          ajaxing:false,
+          isRefreshing:false,
+        });
+        alert('失败')
       }
     })
   }

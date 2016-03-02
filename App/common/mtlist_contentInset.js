@@ -15,7 +15,7 @@ import React, {
 } from 'react-native';
 
 var headerLoadingHeight = 50,
-    aniRate =0,
+    aniValue =0,
     running  =false;
 class MTListview extends Component{
   constructor(props){
@@ -23,69 +23,54 @@ class MTListview extends Component{
     headerLoadingHeight = this.props.headerLoadingHeight;
     this.state = {
       loadingText:'下拉刷新',
-      translateY:-headerLoadingHeight,
-      currentState:0   //0下拉刷新状态  1加载中状态  2加载完成状态
+      y:headerLoadingHeight,
+      top:-headerLoadingHeight,
+      currentState:0,   //0下拉刷新状态  1加载中状态  2加载完成状态
+      bindScroll:true
     }
   }
   componentWillReceiveProps(){
-    if(this.props.isRefreshing){
+    //此时的props还是未更新的 will
+    if(this.props.isRefreshing){ 
+      this.setState({
+        loadingText:'加载完成',
+        currentState:2,
+      })
       setTimeout(()=>{
-        this.setState({
-          loadingText:'加载完成',
-          currentState:2
-        })
-      },200)
-      this.lastScrollY =10;
-      //setTimeout(()=>{animateTrans()},500)
-      setTimeout(()=>{
-        running = false;
         this.setState({
           loadingText:'下拉刷新',
-          translateY:-headerLoadingHeight,
-          currentState:0
+          currentState:0,
+          y:headerLoadingHeight,
+          top:-headerLoadingHeight
         });
-      },400)
+        setTimeout(()=>{
+          running = false;
+          this.lastScrollY = 10;
+        },200);
+      },500)
     }
-    //加载完成动画回弹
-    // var self = this;
-    // function animateTrans(){
-    //   aniRate -=20;
-    //   var loadingText = aniRate<-20 ? '下拉刷新':'加载完成'
-    //   self.setState({
-    //     loadingText:loadingText,
-    //     translateY:aniRate,
-    //     currentState:0
-    //   });
-    //   if(aniRate<=-headerLoadingHeight){
-    //     aniRate=0;
-    //     running = false;
-    //   }else{
-    //     window.requestAnimationFrame(animateTrans)
-    //   } 
-    // }
   }
   handleScroll(e) {
+    // this.lastContentInsetTop = e.nativeEvent.contentInset.top
+    // this.lastContentOffsetX = e.nativeEvent.contentOffset.x
+    if( running || scrollY>0) return;
     var scrollY = e.nativeEvent.contentInset.top + e.nativeEvent.contentOffset.y;
-    if(scrollY>0 || running) return;
-    if(typeof this.lastScrollY =='undefined'){
-      this.lastScrollY=10;
-    }
-    var direction = this.lastScrollY>scrollY ? 1 : -1; //1往下拉，-1回弹
+    var direction = (this.lastScrollY>scrollY || typeof this.lastScrollY=='undefined') ? 1 : -1; //1往下拉，-1回弹
     this.lastScrollY = scrollY;
     if(direction==1){
-      if(!this.props.isRefreshing && (Math.abs(scrollY)+10<headerLoadingHeight) ) return;
+      if(scrollY>headerLoadingHeight) return;
       this.setState({
-        translateY:-headerLoadingHeight-scrollY/2,
         loadingText:'松开刷新',
         currentState:1
       })
     }else{
       running = true;
-      this.props.onRefresh();
+      this.props.onRefresh();//外边改变父级props.isRefreshing
       this.setState({
-        translateY:0,
+        loadingText:'加载中',
         currentState:1,
-        loadingText:'加载中...'
+        y:0,
+        top:0,
       });
     }
   }
@@ -103,14 +88,26 @@ class MTListview extends Component{
         onEndReachedThreshold={100}
         onEndReached={this.props.onEndReached}
         ref="listView"
-        style={{transform:[{
-            translateY:this.state.translateY
-          }]
-        }}>
+        contentInset={{
+          top:this.state.top
+        }}
+        contentOffset={{
+          x:0,
+          y:this.state.y
+        }}
+        >
       </ListView>
    )
   }
 }
- 
+
+const mt = StyleSheet.create({
+  Listview:{
+    transform:[{
+      translateY:-headerLoadingHeight
+    }]
+  },
+  flex:1
+})
 
 export default MTListview;

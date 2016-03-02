@@ -37,6 +37,7 @@ class Weixin extends Component{
     this.getData();
   }
   getData(){
+
     var news = [];
     until.ajax({
       url:'http://apis.baidu.com/txapi/weixin/wxhot?num=20&page='+this.state.page,
@@ -44,15 +45,13 @@ class Weixin extends Component{
         'apikey':'f589f2834aeab120eef2e750e4fb1dfb'
       },
       success:(data)=>{
-          if(data.msg=='ok'){
-            this.data = this.data.concat(data.newslist);
-            this.setState({
-              show:true,
-              ajaxing:false,
-              isRefreshing:false,
-              dataSource: ds.cloneWithRows(this.data)
-            })
-          }
+          this.data = this.data.concat(data.newslist);
+          this.setState({
+            show:true,
+            ajaxing:false,
+            isRefreshing:false,
+            dataSource: ds.cloneWithRows(this.data)
+          })
       },
       failure:(data)=>{}
     })
