@@ -1,114 +1,131 @@
-/**
- * 
- * @authors ZHY
- * @date    2016-02-29 15:44:59
- * @version v1.0
- */
 'use strict';
 import React, {
+  AppRegistry,
   Component,
   StyleSheet,
   Text,
-  View,
-  ListView,
   Image,
+  AlertIOS,
+  ListView,
+  ScrollView,
+  View,
+  Platform,
+  RefreshControl
 } from 'react-native';
 
 var headerLoadingHeight = 50,
-    aniRate =0,
-    running  =false;
+    running = false,
+    refreshable = true;
 class MTListview extends Component{
-  constructor(props){
+  constructor (props){
     super(props);
     headerLoadingHeight = this.props.headerLoadingHeight;
+    refreshable = this.props.refreshable;
     this.state = {
-      loadingText:'下拉刷新',
-      translateY:-headerLoadingHeight,
-      currentState:0   //0下拉刷新状态  1加载中状态  2加载完成状态
+      currentState:0
+    }
+
+  }
+
+  handleScroll (e){
+    if(e.nativeEvent.contentOffset.y<= -10 && this.isTouching && !running && refreshable){
+      this.setState({
+        currentState:1
+      });
+      running = true;
     }
   }
-  componentWillReceiveProps(){
-    if(this.props.isRefreshing){
+  onResponderGrant() {
+    this.isTouching = true;
+  }
+  onResponderRelease() {
+    this.isTouching = false;
+    if(this.state.currentState!=1) return;
+    this._scrollResponder.scrollTo({y:0});
+    this.setState({
+      currentState : 2,
+    });
+
+    //加载完成回调
+    this.props.onRefreshData(()=>{
+      this.setState({
+        currentState : 3,
+      });
+      this._scrollResponder.scrollTo({y:headerLoadingHeight});
       setTimeout(()=>{
         this.setState({
-          loadingText:'加载完成',
-          currentState:2
-        })
-      },200)
-      this.lastScrollY =10;
-      setTimeout(()=>{animateTrans()},300)
-      // setTimeout(()=>{
-      //   running = false;
-      //   this.setState({
-      //     loadingText:'下拉刷新',
-      //     translateY:-headerLoadingHeight,
-      //     currentState:0
-      //   });
-      // },400)
-    }
-    //加载完成动画回弹
-    var self = this;
-    function animateTrans(){
-      aniRate -=20;
-      var loadingText = aniRate<-20 ? '下拉刷新':'加载完成'
-      self.setState({
-        loadingText:loadingText,
-        translateY:aniRate,
-        currentState:0
-      });
-      if(aniRate<=-headerLoadingHeight){
-        aniRate=0;
+          currentState:0
+        });
         running = false;
-      }else{
-        window.requestAnimationFrame(animateTrans)
-      } 
+      },300);
+    });
+
+  }
+  componentDidMount() {
+    this._scrollResponder = this.refs.listview.getScrollResponder();
+  }
+   _calculateContentOffset() {
+    if (refreshable && Platform.OS !== 'android') {
+      return {y: headerLoadingHeight};
+    } else {
+      return {y: 0};
     }
   }
-  handleScroll(e) {
-    var scrollY = e.nativeEvent.contentInset.top + e.nativeEvent.contentOffset.y;
-    if(scrollY>0 || running) return;
-    if(typeof this.lastScrollY =='undefined'){
-      this.lastScrollY=10;
+  _calculateContentInset(){
+    if (refreshable&& Platform.OS !== 'android') {
+      return {top:-headerLoadingHeight};
+    } else {
+      return {top:0};
     }
-    var direction = this.lastScrollY>scrollY ? 1 : -1; //1往下拉，-1回弹
-    this.lastScrollY = scrollY;
-    if(direction==1){
-      if(!this.props.isRefreshing && (Math.abs(scrollY)<headerLoadingHeight) ) return;
+  }
+  _refreshControl(){
+    if(Platform.OS == 'android' && refreshable){
+      return (
+        <RefreshControl
+            refreshing={this.state.isRefreshing}
+            onRefresh={this.onRefresh.bind(this)}
+            tintColor="#000"
+            title="Loading..."
+            colors={['#cccccc']}
+            progressBackgroundColor="#666"/>
+      )
+    }
+    return;
+  }
+
+  onRefresh(){
+    if(Platform.OS == 'android'){
       this.setState({
-        translateY:0,
-        loadingText:'松开刷新',
-        currentState:1
+        isRefreshing:true
       })
-    }else{
-      if(!this.state.currentState) return;
-      running = true;
-      this.props.onRefresh();
-      this.setState({
-        translateY:0,
-        currentState:1,
-        loadingText:'加载中...'
-      });
     }
+    this.props.onRefreshData(()=>{
+      this.setState({
+        isRefreshing:false
+      })
+    })
   }
-  render(){
-   return(
-      <ListView 
-        dataSource={this.props.dataSource}
+  render (){
+    return (
+      <ListView
+        ref="listview"
         automaticallyAdjustContentInsets={false}
-        renderRow={this.props.renderRow}
-        renderFooter = {this.props.renderFooter}
-        renderHeader = {this.props.renderHeader.bind(this,this.state.loadingText,this.state.currentState)}
-        initialListSize={10}
-        onScroll={this.handleScroll.bind(this)}
-        isRefreshing={this.props.isRefreshing}
-        onEndReachedThreshold={100}
-        onEndReached={this.props.onEndReached}
-        ref="listView"
-        style={{marginTop:this.state.translateY}}>
+        dataSource = {this.props.dataSource}
+        renderRow = {this.props.renderRow}
+        onEndReached = {this.props.onEndReached}
+        onScroll = {this.handleScroll.bind(this)}
+        onResponderRelease = {this.onResponderRelease.bind(this)}
+        onResponderGrant = {this.onResponderGrant.bind(this)}
+        renderHeader = {refreshable && Platform.OS !== 'android' ? this.props.renderHeader.bind(this,this.state.currentState):null}
+        renderFooter = {this.props.renderFooter.bind(this)}
+        scrollEventThrottle={200}
+        contentInset={this._calculateContentInset()}
+        contentOffset={this._calculateContentOffset()}
+        refreshControl = {this._refreshControl()}
+      >
       </ListView>
-   )
+    )
   }
 }
- 
 
 export default MTListview;

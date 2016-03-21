@@ -10,9 +10,7 @@ import React, {
   WebView,
   Image,
   ListView,
-  RefreshControl,
-  ActivityIndicatorIOS,
-  ActionSheetIOS
+  NetInfo
 } from 'react-native';
 import until from './common/until.js'
 import share from './common/share.js'
@@ -24,39 +22,73 @@ class Zhihu extends Component{
     super(props);
     this.data = {list:[],date:''};
     this.state = {
-      show:false,
+      loading:false,
+      ajaxing:false,
       dataSource: ds.cloneWithRows(this.data.list),
-      isRefreshing:false,
       tipText:'',
       tipShow:false,
+      isDataNull:false
     }
+    this.getNetWork();
   }
-  componentDidMount(){
-    this.getData();
+  getNetWork(){
+    var self = this;
+    NetInfo.isConnected.fetch().done((isConnected)=> {
+       if(!isConnected){
+         //从缓存读取
+         storage.load({key:'zhihuList'}).then(ret =>{
+           self.data = ret.newslist;
+            setTimeout(()=>{
+               self.setState({
+                 loading:false,
+                 ajaxing:false,
+                 dataSource: ds.cloneWithRows(self.data)
+               });
+            })
+          }).catch( err => {
+              //网络错误 并且无缓存
+              self.setState({
+                isDataNull:true
+              })
+          });
+       }else{
+         self.getData();
+       }
+    })
   }
-  getData(){
-    var news = [];  
-    var url = this.state.date ? 'http://news.at.zhihu.com/api/4/news/before/'+this.state.date : 'http://news-at.zhihu.com/api/4/news/latest';
+  getData(callback){
+    var news = [],
+        cbk  = callback || function(){},
+        url = this.state.date ? 'http://news.at.zhihu.com/api/4/news/before/'+this.state.date : 'http://news-at.zhihu.com/api/4/news/latest';
     until.ajax({
       url:url,
       success:(data)=>{
         data.stories.map((item)=>{
-        item['date'] = data.date;
+          item['date'] = data.date;
         })
         this.data.list = this.data.list.concat(data.stories);
         this.setState({
-          show:true,
+          loading:true,
           ajaxing:false,
           date:data.date,
-          isRefreshing:false,
           dataSource: ds.cloneWithRows(this.data.list)
         });
+        this.dataHandle = setTimeout(()=>{
+          cbk();
+        },100);
+        //设置第一页缓存
+        if(!this.state.date){
+          storage.save({
+            key: 'zhihuList',
+            rawData:data,
+            expires:null
+          });
+        }
       },
       failure:(data)=>{
         this.setState({
-          show:true,
+          loading:true,
           ajaxing:false,
-          isRefreshing:false,
         });
         alert('失败')
       }
@@ -113,10 +145,8 @@ class Zhihu extends Component{
             <Text style={[styles.listItemDate]}>{result.date}</Text>
           </View>
       </TouchableHighlight>
-      
     )
   }
-
   nextPage(){ 
     if(this.state.ajaxing) return;
     if(this.state.date=='20151231'){
@@ -133,16 +163,16 @@ class Zhihu extends Component{
     }
   }
 
-  _onRefresh(){
+  onRefreshData(callback){
+    
     this.data = {
       list:[]
     }
     this.setState({
-      isRefreshing:true,
       loadedAll:false,
       date:''
     })
-    this.getData();
+    this.getData(callback);
   }
 
 
@@ -154,19 +184,32 @@ class Zhihu extends Component{
       return until.LoadMoreTip
     }
   }
-
+  retry(){
+    this.getNetWork();
+  }
   render(){ 
+    if(this.state.isDataNull){
+      //无网络并且无缓存数据
+      return (
+        <View style={[styles.flex,styles.center]}>
+          <Text style={[styles.gray]}>无网络。。。</Text>
+          <TouchableHighlight onPress={this.retry.bind(this)} style={[styles.button]}>
+            <Text></Text>
+          </TouchableHighlight>
+        </View>
+      )
+    }
     return (
-      <View style={[styles.flex]}>
+      <View style={[styles.flex,styles.listviewWrap]}>
         {
-          this.state.show ? <MTListview 
+          this.state.loading ? <MTListview 
             dataSource={this.state.dataSource} 
             renderRow={this.renderRow.bind(this)}
             renderHeader = {(txt,currentState)=>{return until.pullHeaderRefresh(txt,currentState)}}
             headerLoadingHeight = {50}
+            refreshable={true}
             renderFooter = {this.renderFooter.bind(this)}
-            isRefreshing={this.state.isRefreshing}
-            onRefresh={this._onRefresh.bind(this)}
+            onRefreshData={(cbk)=>{this.onRefreshData(cbk)}}
             onEndReached={this.nextPage.bind(this)}
             >
           </MTListview> : until.Loading
@@ -243,7 +286,10 @@ const styles = StyleSheet.create({
   },
   center:{
     justifyContent:'center',
-    alignItems:'flex-end'
+    alignItems:'center'
+  },
+  listviewWrap:{
+    marginBottom:50,
   },
   ListItem:{
     flex:1,

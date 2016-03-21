@@ -1,23 +1,43 @@
-
 import React,{
   Component,
   PixelRatio,
   Dimensions,
+  Platform,
   StyleSheet,
   Text,
   Animated,
-  Modal,
-  ActivityIndicatorIOS,
   View,
-  Image
+  Image,
+  ActivityIndicatorIOS
 } from 'react-native'
 
+import Storage from 'react-native-storage';
+var storage = new Storage({
+  //最大容量，默认值1000条数据循环存储
+  size: 1000,    
+
+  //数据过期时间，默认一整天（1000 * 3600 * 24秒）
+  defaultExpires: 1000 * 3600 * 24 * 365 * 30,
+
+  //读写时在内存中缓存数据。默认启用。
+  enableCache: true,
+
+  //如果storage中没有相应数据，或数据已过期，
+  //则会调用相应的sync同步方法，无缝返回最新数据。
+  sync : {
+    //同步方法的具体说明会在后文提到
+  }
+});
+global.storage = storage;  
+
+
 /*Loading*/
+var loadingImage = Platform.OS == 'android' ? <Image source={require('../images/loading.gif')} width={24} height={24}/> : <ActivityIndicatorIOS size="small" color="#ccc"/>;
 class Loading extends Component{
   render(){
     return (
       <View style={[styles.Loading]}>
-        <ActivityIndicatorIOS size="small" color="#ccc"/><Text style={[styles.gray,styles.ml5]}>loading...</Text>
+        {loadingImage}<Text style={[styles.gray,styles.ml5]}>loading...</Text>
       </View>
     )
   }
@@ -27,7 +47,7 @@ class LoadMoreTip extends Component{
   render(){
     return (
       <View style={[styles.LoadMoreTip]}>
-        <ActivityIndicatorIOS size="small" color="#ccc" style={{marginTop:20}}/><Text style={[styles.gray,styles.ml5,styles.transparent]}>加载中...</Text>
+        {loadingImage}<Text style={[styles.gray,styles.ml5,styles.transparent]}>加载中...</Text>
       </View>
     )
   }
@@ -62,13 +82,14 @@ class Tip extends Component{
       <View  style={[styles.TipModal]}>
         <Text style={[styles.textCenter,styles.TipText]}>{this.state.text}</Text>
       </View>
-      
+
     )
   }
 }
 
 var width = Dimensions.get('window').width,
     height = Dimensions.get('window').height;
+  console.log(width,height)
 var until = {
   /*最小线宽*/
   pixel: 1 / PixelRatio.get(),
@@ -77,6 +98,7 @@ var until = {
     width: width,
     height:height
   },
+  OS:Platform.OS,
   /**
    * 基于fetch的get方法
    * @method post
@@ -112,13 +134,48 @@ var until = {
   Loading:<Loading/>,
   LoadMoreTip:<LoadMoreTip />,
   LoadedAll:<LoadedAll text="你下面没了..."/>,
-  pullHeaderRefresh:function(txt,currentState){
+  pullHeaderRefresh:function(status){
+    var txt ='下拉刷新';
+    switch(status){
+      case 0:
+        txt ='下拉刷新';
+      break;
+      case 1:
+        txt ='松手更新'
+      break;
+      case 2:
+        txt ='加载中...'
+      break;
+      case 3:
+        txt ='加载完成'
+      break;
+      default:
+        txt ='';
+      break;
+
+    }
+    if(status==2){
       return (
-        <View style={[styles.ListviewHeader]}>
-          <Image source={require("image!home")}/>
-          <Text style={[styles.ListviewLoading]} ref="loadingText">{txt}</Text>
+        <View style={[styles.ListviewHeader,styles.flex]}>
+          <Image source={require('../images/loading.gif')} width={24} height={24}/>
+          <Text style={[styles.ListviewLoading,styles.flex]}>{txt}</Text>
         </View>
       )
+    }
+    if(status==3){
+      return (
+        <View style={[styles.ListviewHeader,styles.flex]}>
+          <Image source={require('../images/loading.gif')} width={24} height={24}/>
+          <Text style={[styles.ListviewLoading,styles.flex]}>{txt}</Text>
+        </View>
+      )
+    }
+    return (
+      <View style={[styles.ListviewHeader,styles.flex]}>
+      <Image source={require('../images/loading.gif')} width={24} height={24}/>
+        <Text style={[styles.ListviewLoading,styles.flex]}>{txt}</Text>
+      </View>
+    )
   },
   Tip:function(text){
     return <Tip text={text}/>
@@ -169,7 +226,7 @@ const styles = StyleSheet.create({
     height:until.size.height,
     justifyContent:'center',
     alignItems:'center',
-    backgroundColor:'rgba(0,0,0,.2)' 
+    backgroundColor:'rgba(0,0,0,.2)'
   },
   TipText:{
     paddingTop:20,
@@ -182,14 +239,15 @@ const styles = StyleSheet.create({
     backgroundColor:'#f8f8f8'
   },
   ListviewHeader:{
-    height:50,
-    justifyContent:'center',
-    alignItems:'center'
+    justifyContent:'flex-end',
+    alignItems:'center',
+    // paddingTop:15
   },
   ListviewLoading:{
     fontSize:12,
-    lineHeight:16,
-    color:'#777'
+    lineHeight:12,
+    color:'#777',
+    paddingBottom:5
   }
 });
 export default until;

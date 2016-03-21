@@ -14,9 +14,7 @@ import React, {
   TouchableHighlight,
   WebView,
   Image,
-  ListView,
-  RefreshControl,
-  ActivityIndicatorIOS
+  ListView
 } from 'react-native';
 import until from './common/until'
 import share from './common/share'
@@ -38,20 +36,22 @@ class Collection extends Component{
   componentDidMount(){
     this.getData();
   }
-  getData(){
-    var self = this;
+  getData(callback){
+    var self = this,
+        cbk  = callback || function(){};
     storage.load({key:'article'}).then(ret =>{
       self.setState({
         show:true,
         ajaxing:false,
-        isRefreshing:false,
         dataSource: ds.cloneWithRows(ret)
-      })
+      });
+      this.dataHandle = setTimeout(()=>{
+        cbk();
+      },50)
     })
     .catch( err => {          
         self.setState({
-            show:false,
-            isRefreshing:false
+            show:false
         })
     })
     
@@ -82,14 +82,13 @@ class Collection extends Component{
     )
   }
 
-  _onRefresh(){
+  onRefreshData(cbk){
     this.data = [];
     this.setState({
       page:1,
-      isRefreshing:true,
       loadedAll:false
     })
-    this.getData();
+    this.getData(cbk);
   }
 
   renderFooter(data){
@@ -105,16 +104,16 @@ class Collection extends Component{
   render(){ 
     return (
       <View style={[styles.flex,styles.indexList]}>
-        <MTListview 
-            dataSource={this.state.dataSource} 
-            renderRow={this.renderRow.bind(this)}
-            renderHeader = {(txt,currentState)=>{return until.pullHeaderRefresh(txt,currentState)}}
-            headerLoadingHeight = {50}
-            renderFooter = {this.renderFooter.bind(this)}
-            isRefreshing={this.state.isRefreshing}
-            onRefresh={this._onRefresh.bind(this)}
-            >
-          </MTListview>
+        <MTListview
+          dataSource={this.state.dataSource}
+          renderRow={this.renderRow.bind(this)}
+          renderHeader = {(txt,currentState)=>{return until.pullHeaderRefresh(txt,currentState)}}
+          refreshable={true}
+          headerLoadingHeight = {50}
+          renderFooter = {this.renderFooter.bind(this)}
+          onRefreshData={this.onRefreshData.bind(this)}
+          >
+        </MTListview>
         {
           this.state.show ?  null: <Text style={[styles.noData,styles.gray]}>都不收藏，你下面没了...</Text>
         }

@@ -10,8 +10,7 @@ import React, {
   WebView,
   Image,
   ListView,
-  RefreshControl,
-  ActivityIndicatorIOS
+  NetInfo,
 } from 'react-native';
 import until from './common/until'
 import share from './common/share'
@@ -24,20 +23,43 @@ class Weixin extends Component{
     super();
     this.data = [];
     this.state = {
-      show:false,
+      loading:false,
       dataSource: ds.cloneWithRows(this.data),
       page:1,
       totalPage:50,
-      isRefreshing:false,
       tipText:'',
       tipShow:false,
+      isDataNull:false
     }
+    this.getNetWork();
   }
-  componentDidMount(){
-    this.getData();
+  getNetWork(){
+    var self = this;
+    NetInfo.isConnected.fetch().done((isConnected)=> {
+       if(!isConnected){
+         //从缓存读取
+         storage.load({key:'weixinList'}).then(ret =>{
+           self.data = ret.newslist;
+            setTimeout(()=>{
+               self.setState({
+                 loading:false,
+                 ajaxing:false,
+                 dataSource: ds.cloneWithRows(self.data)
+               });
+            })
+          }).catch( err => {
+              //网络错误 并且无缓存
+              self.setState({
+                isDataNull:true
+              })
+          });
+       }else{
+         self.getData();
+       }
+    })
   }
-  getData(){
-
+  getData(callback){
+    var cbk = callback || function(){};
     var news = [];
     until.ajax({
       url:'http://apis.baidu.com/txapi/weixin/wxhot?num=20&page='+this.state.page,
@@ -46,12 +68,23 @@ class Weixin extends Component{
       },
       success:(data)=>{
           this.data = this.data.concat(data.newslist);
-          this.setState({
-            show:true,
-            ajaxing:false,
-            isRefreshing:false,
-            dataSource: ds.cloneWithRows(this.data)
-          })
+          
+          setTimeout(()=>{
+            this.setState({
+              loading:true,
+              ajaxing:false,
+              dataSource: ds.cloneWithRows(this.data)
+            });
+            cbk();
+          },100)
+
+          if(this.state.page==1){
+            storage.save({
+              key: 'weixinList',
+              rawData:data,
+              expires:null
+            });
+          }
       },
       failure:(data)=>{}
     })
@@ -121,19 +154,17 @@ class Weixin extends Component{
       this.setState({
         ajaxing:true
       })
-
       this.getData();
     }
   }
 
-  _onRefresh(){
+  onRefreshData(cbk){
     this.data = [];
     this.setState({
       page:1,
-      isRefreshing:true,
       loadedAll:false
     })
-    this.getData();
+    this.getData(cbk);
   }
 
   renderFooter(data){
@@ -143,23 +174,33 @@ class Weixin extends Component{
     if(this.state.ajaxing){
       return until.LoadMoreTip
     }
-    
+
   }
 
-  render(){ 
+  render(){
+    if(this.state.isDataNull){
+      //无网络并且无缓存数据
+      return (
+        <View style={[styles.flex,styles.center]}>
+          <Text style={[styles.gray]}>无网络。。。</Text>
+          <TouchableHighlight onPress={this.retry.bind(this)} style={[styles.button]}>
+            <Text></Text>
+          </TouchableHighlight>
+        </View>
+      )
+    }
     return (
-      <View style={[styles.flex]}>
+      <View style={[styles.flex,styles.listviewWrap]}>
         {
-          this.state.show ? <MTListview 
-            dataSource={this.state.dataSource} 
+          this.state.loading ? <MTListview
+            dataSource={this.state.dataSource}
             renderRow={this.renderRow.bind(this)}
             renderHeader = {(txt,currentState)=>{return until.pullHeaderRefresh(txt,currentState)}}
+            refreshable={true}
             headerLoadingHeight = {50}
             renderFooter = {this.renderFooter.bind(this)}
-            isRefreshing={this.state.isRefreshing}
-            onRefresh={this._onRefresh.bind(this)}
-            onEndReached={this.nextPage.bind(this)}
-            >
+            onRefreshData={this.onRefreshData.bind(this)}
+            onEndReached={this.nextPage.bind(this)}>
           </MTListview> : until.Loading
         }
       </View>
@@ -172,7 +213,6 @@ class Weixin extends Component{
 class Detail extends Component{
   render(){
     return (
-      
       <ScrollView style={[styles.webviewWrap]}>
         <WebView automaticallyAdjustContentInsets={false}
           style={styles.articleWebview}
@@ -195,11 +235,11 @@ const styles = StyleSheet.create({
     justifyContent:'center',
     alignItems:'flex-end'
   },
+  listviewWrap:{
+    marginBottom:50,
+  },
   ListItem: {
     paddingBottom:20
-  },
-  flex:{
-    flex:1
   },
   ListItemTouchLabel:{
     paddingBottom:2,
