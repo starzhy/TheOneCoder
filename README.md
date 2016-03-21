@@ -4,6 +4,7 @@
 目前只有IOS版，直接下载项目，进入项目根目录执行npm install，之后运行xcode就可调试
 
 #### 功能更新日志
+* 2016-03-20：优化了MTListview的性能问题，同时增加了android的支持，anroid用的RefreshControl
 * 2016-03-01：基于Listview封装了MTListview 支持下拉文案和图片的修改，下拉距离定制
 * 2016-02-27：更新了文本框提示，应用于详细页的收藏成功提醒
 
