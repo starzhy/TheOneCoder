@@ -19,8 +19,8 @@ import MTListview from './common/MTListview.js'
 /*Weixin精选*/
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 class Weixin extends Component{
-  constructor(){
-    super();
+  constructor(props){
+    super(props);
     this.data = [];
     this.state = {
       loading:false,
@@ -32,6 +32,11 @@ class Weixin extends Component{
       isDataNull:false
     }
     this.getNetWork();
+    console.log(this.props)
+  }
+  componentWillUnMount(){
+
+    console.log(1)
   }
   getNetWork(){
     var self = this;
@@ -68,7 +73,7 @@ class Weixin extends Component{
       },
       success:(data)=>{
           this.data = this.data.concat(data.newslist);
-          
+
           setTimeout(()=>{
             this.setState({
               loading:true,
@@ -88,7 +93,7 @@ class Weixin extends Component{
       },
       failure:(data)=>{}
     })
-    
+
   }
   loadPage(url,title,imgUrl,flag) {
     var self = this;
@@ -208,7 +213,7 @@ class Weixin extends Component{
   }
 }
 
- 
+
 /*文章详情页*/
 class Detail extends Component{
   render(){

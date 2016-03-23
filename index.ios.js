@@ -50,7 +50,7 @@ class TheOneCoder extends Component {
       ]
     }
   }
-  changeSelected(value){  
+  changeSelected(value){
     this.setState({
       tab:value
     })
@@ -61,14 +61,16 @@ class TheOneCoder extends Component {
         barTintColor='#f8f8f8'
         tintColor='#666'
         titleTextColor="#333"
-        style={{flex:1}} 
+        style={{flex:1}}
         initialRoute={{
           component:this.state.tabItems[index].component,
           title:this.state.tabItems[index].title,
           wrapperStyle:styles.tabwrapper,
           navigationBarHidden:false,
-          passProps:{}
-      }} /> 
+          passProps:{
+            active:this.state.tab=='weixin'
+          }
+      }} />
     )
   }
   render() {
@@ -81,7 +83,7 @@ class TheOneCoder extends Component {
           selected={this.state.tab==='zhihu'}>
             {
               this.createNavigatorItem(0)
-            } 
+            }
           </TabBarIOS.Item>
           <FontAwesome.TabBarItem
             title={this.state.tabItems[1].name}
@@ -92,7 +94,7 @@ class TheOneCoder extends Component {
             selected={this.state.tab==='weixin'}>
               {
                 this.createNavigatorItem(1)
-              } 
+              }
           </FontAwesome.TabBarItem>
           <Icon.TabBarItem
             title={this.state.tabItems[2].name}
