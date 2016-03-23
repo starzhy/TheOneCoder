@@ -11,7 +11,7 @@ import React, {
   Image,
   StatusBarIOS,
   TabBarIOS,
-  NavigatorIOS,
+  NavigatorIOS,  
   AlertIOS,
   View
 } from 'react-native';
