@@ -15,9 +15,9 @@ import React, {
   AlertIOS,
   View
 } from 'react-native';
-import Zhihu from './App/Zhihu'
-import Weixin from './App/Weixin'
-import Collection from './App/Collection'
+import Zhihu from './app/Zhihu'
+import Weixin from './app/Weixin'
+import Collection from './app/Collection'
 import Icon from 'react-native-vector-icons/Ionicons'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 

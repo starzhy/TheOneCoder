@@ -8,6 +8,7 @@ import React, {
   Component,
   StyleSheet,
   Text,
+  Navigator,
   View
 } from 'react-native';
 
