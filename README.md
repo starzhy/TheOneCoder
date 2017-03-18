@@ -13,7 +13,6 @@
   ·读取知乎日报的api、微信热门文章api<BR/>
   ·分享到微信用的react-native-wx，<a href='https://github.com/reactnativecn/react-native-wx'>使用说明</a>
   ·图片用的react-native-vector-icons <a href='https://github.com/oblador/react-native-vector-icons'>使用说明</a>
-  ·问题交流：zhyyangyang@gmail.com
-
+ 
 APP截图<br/>
 <img src="http://7sbn2v.com1.z0.glb.clouddn.com/1.png" width="320"/> <img src="http://7u2n6h.com2.z0.glb.qiniucdn.com/app1.png" width="320" style="margin-left:15px"/> <img src="http://7u2n6h.com2.z0.glb.qiniucdn.com/app3.png" width="320" style="margin-top:20px"/>
